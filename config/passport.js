@@ -1,48 +1,54 @@
-// Passport node package
-var passport = require('passport'); 
-// LocalStrategy for username/password authentication
-var LocalStrategy = require('passport-local').Strategy; 
+var bcrypt = require('bcrypt-nodejs');
 
-var db = require ('../models');
-
-// Instructing Passport to use Local Strategy (username and password)
-passport.use(new LocalStrategy(
-  {
-    // Username field
-    username: "username"
-  },
-  function(username, password, done) {
-    // When the user attempts to log in this code runs
-    db.User.findOne({
-      where: {
-        user: username
-      }
-    }).then(function(dbUser) {
-      // If there is no user by this username
-      if (!dbUser) {
-        return done(null, false, {
-          message: "Incorrect username"
+module.exports = function(passport, user) {
+  
+  var User = user;
+  var LocalStrategy = require('passport-local').Strategy;
+  
+  passport.use('local-signup', new LocalStrategy(
+    
+    {
+      usernameField: 'username',
+      passwordField: 'password',
+      passReqToCallback: true
+    },
+    
+    function(req, username, password, done) {
+      
+      var generateHash = function(password) {
+        return bCrypt.hashSync(password, bCrypt.genSaltSync(8), null);
+      };
+      
+      User.findOne({
+        where: {
+          username: username
+        }
+      }).then(function(user) {
+        if (user) {
+          return done(null, false, { message: "That username is already in use"});
+        } else {
+          var userPassword = generateHash(password);
+          var data = 
+          {
+            username: username,
+            password: userPassword,
+          };
+        User.create(data).then(function(newUser, created) {
+          if (!newUser) {
+            return done(null, false);
+          }
+          if (newUser) {
+            return done(null, newUser);
+          }
         });
-      }
-      // If there is a user by this username but incorrect password
-      else if (!dbUser.validPassword(password)) {
-        return done(null, false, {
-          message: "Incorrect password"
-        });
-      }
-      // If none of the conditions above are true, return the user
-      return done(null, dbUser);
-    });
-  }
-));
+          
+        }
+      });
+      
+    }
+    
+  ));
+  
+}
 
-passport.serializeUser(function(user, callback) {
-  callback(null, user);
-});
 
-passport.deserializeUser(function(obj, callback) {
-  callback(null, obj);
-});
-
-// Export passport configurations
-module.exports = passport;
