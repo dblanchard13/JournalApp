@@ -4,15 +4,24 @@ var session = require('express-session');
 var passport = require('passport');
 var env = require('dotenv').load();
 
-// Configuring port and models
-var PORT = process.env.PORT || 8080;
-var models = require('./app/models');
-
 // Express App and Middleware for authentication
 var app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static("./public"));
+
+// To track user login status we use sessions
+// app.use(session({ secret: "keyboard cat", resave: true, saveUninitialized: true }));
+app.use(passport.initialize());
+// app.use(passport.session());
+
+// Models
+var models = require('./app/models');
+
+// Load Passport Strategies
+// require('./app/config/passport.js')(passport, models.user);
+
+
 
 // Set handlebars
 var exphbs = require('express-handlebars');
@@ -20,13 +29,8 @@ app.set('views', './views');
 app.engine('handlebars', exphbs({ extname: '.handlebars'}));
 app.set('view engine', '.handlebars');
 
-// To track user login status we use sessions
-app.use(session({ secret: "keyboard cat", resave: true, saveUninitialized: true }));
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Load Passport Strategies
-require('./config/passport.js')(passport, models.user);
+// Configuring port and models
+var PORT = process.env.PORT || 8080;
 
 // Loading our routes
 var authRoute = require('./routes/auth.js')(app, passport);
@@ -38,8 +42,6 @@ var authRoute = require('./routes/auth.js')(app, passport);
 // app.get('/journal', function(req,res) {
 //   res.sendFile(__dirname + '/public/journalapp.html');
 // });
-// 
-// app.post('/login', passport.authenticate('local', {successRedirect: '/', failureRedirect: '/login', failureFlash: true}));
 
 // Sync database
 models.sequelize.sync().then(function() {
