@@ -11,9 +11,9 @@ app.use(bodyParser.json());
 app.use(express.static("./public"));
 
 // To track user login status we use sessions
-// app.use(session({ secret: "keyboard cat", resave: true, saveUninitialized: true }));
+app.use(session({ secret: "keyboard cat", resave: true, saveUninitialized: true }));
 app.use(passport.initialize());
-// app.use(passport.session());
+app.use(passport.session());
 
 // Models
 var models = require('./app/models');

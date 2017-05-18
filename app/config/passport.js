@@ -3,26 +3,27 @@ var db = require('../models')
 
 module.exports = function(passport) {
   
-  var User = db.User
+  var User = db.user
 
   var LocalStrategy = require('passport-local').Strategy;
   console.log('User');
-    passport.serializeUser(function(user, done) {
-      console.log('serializing')
-      done(null, user.id);
-    });
 
-    passport.deserializeUser(function(id, done) {
-      console.log('deserializing')
-      User.findById(id).then(function(user) {
-        if (user) {
-          done(null, user.get());
-        }
-        else {
-          done(user.errors, null);
-        }
-      });
+  passport.serializeUser(function(user, done) {
+    console.log('serializing')
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(function(id, done) {
+    console.log('deserializing')
+    User.findById(id).then(function(user) {
+      if (user) {
+        done(null, user.get());
+      }
+      else {
+        done(user.errors, null);
+      }
     });
+  });
   
   passport.use('local-signup', new LocalStrategy(
     
@@ -33,9 +34,9 @@ module.exports = function(passport) {
     },
     
     function(req, username, password, done) {
-      console.log('local-signup');
+
       var generateHash = function(password) {
-        return bCrypt.hashSync(password, bCrypt.genSaltSync(8), null);
+        return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
       };
       
       User.findOne({
@@ -82,7 +83,7 @@ module.exports = function(passport) {
     function(req, username, password, done) {
       var User = user;
       var isValidPassword = function(userpass, password) {
-        return bCrypt.compareSync(password, userpass);
+        return bcrypt.compareSync(password, userpass);
       }
       User.findOne({
         where: {

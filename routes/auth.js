@@ -9,15 +9,12 @@ module.exports = function(app, passport) {
   app.get('/login', authController.login);
   
   app.get('/signup', authController.journal);
-  // app.post('/signup', function(req, res) {
-  //   console.log(req.body)
-  //   
-  //   res.send('cake')
-  // })
+
   app.post('/signup', passport.authenticate('local-signup', {
     successRedirect: '/journal',
     failureRedirect: '/signup'
-  }))//, (req, res) => { console.log(req.body); res.send('cake')}
+    }
+  ))
   
   app.get('/journal', isLoggedIn, authController.journal);
   
